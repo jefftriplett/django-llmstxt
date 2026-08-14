@@ -1,0 +1,28 @@
+[project]
+site_name = "django-llmstxt"
+site_url = "https://jefftriplett.github.io/django-llmstxt/"
+site_description = "llms.txt, llms-full.txt, and markdown content negotiation for Django."
+site_author = "Jeff Triplett"
+copyright = "Copyright &copy; Jeff Triplett"
+docs_dir = "docs"
+site_dir = "site"
+nav = [
+  { "Home" = "index.md" },
+  { "Installation" = "installation.md" },
+  { "Sections" = "sections.md" },
+  { "Views" = "views.md" },
+  { "Middleware" = "middleware.md" },
+  { "Settings" = "settings.md" },
+  { "Cookbook" = "cookbook.md" },
+]
+
+[project.theme]
+variant = "modern"
+features = [
+  "content.code.copy",
+  "navigation.instant",
+  "navigation.instant.progress",
+  "navigation.top",
+  "navigation.tracking",
+  "toc.follow",
+]

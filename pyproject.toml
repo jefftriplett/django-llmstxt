@@ -1,0 +1,115 @@
+[build-system]
+build-backend = "uv_build"
+requires = [
+  "uv-build>=0.8",
+]
+
+[project]
+name = "django-llmstxt"
+version = "0.1.0"
+description = "llms.txt, llms-full.txt, and markdown content negotiation for Django."
+readme = "README.md"
+keywords = [
+  "Django",
+  "llms.txt",
+  "markdown",
+]
+license = "MIT"
+license-files = [ "LICENSE" ]
+authors = [
+  { name = "Jeff Triplett", email = "jeff.triplett@gmail.com" },
+]
+requires-python = ">=3.10"
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Framework :: Django :: 5.2",
+  "Framework :: Django :: 6.0",
+  "Intended Audience :: Developers",
+  "Natural Language :: English",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Typing :: Typed",
+]
+dependencies = [
+  "asgiref>=3.6",
+  "beautifulsoup4>=4.11",
+  "django>=5.2",
+  "markdownify>=0.11.6",
+]
+urls.Repository = "https://github.com/jefftriplett/django-llmstxt"
+
+[dependency-groups]
+docs = [
+  "zensical",
+]
+test = [
+  "coverage[toml]",
+  "pytest>=8",
+  "pytest-django",
+  "pytest-randomly",
+]
+
+[tool.ruff]
+lint.select = [
+  # flake8-bugbear
+  "B",
+  # flake8-comprehensions
+  "C4",
+  # pycodestyle
+  "E",
+  # Pyflakes errors
+  "F",
+  # isort
+  "I",
+  # flake8-simplify
+  "SIM",
+  # flake8-tidy-imports
+  "TID",
+  # pyupgrade
+  "UP",
+  # Pyflakes warnings
+  "W",
+]
+lint.ignore = [
+  # flake8-bugbear opinionated rules
+  "B9",
+  # line-too-long
+  "E501",
+]
+lint.extend-safe-fixes = [
+  # non-pep585-annotation
+  "UP006",
+]
+lint.isort.required-imports = [ "from __future__ import annotations" ]
+
+[tool.pyproject-fmt]
+max_supported_python = "3.14"
+
+[tool.mypy]
+mypy_path = "src/"
+namespace_packages = false
+warn_unreachable = true
+strict = true
+overrides = [ { module = "tests.*", allow_untyped_defs = true } ]
+
+[tool.pytest.ini_options]
+django_find_project = false
+DJANGO_SETTINGS_MODULE = "tests.settings"
+addopts = "--strict-markers --strict-config"
+pythonpath = [ "src", "." ]
+
+[tool.coverage]
+run.branch = true
+run.source = [
+  "django_llmstxt",
+  "tests",
+]
+report.show_missing = true
+report.skip_covered = true
+report.skip_empty = true

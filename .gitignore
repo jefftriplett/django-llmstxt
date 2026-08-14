@@ -1,0 +1,20 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Docs build output
+site/
+.zensical/
+
+# Test / example runtime state
+.pytest_cache/
+.coverage
+coverage.xml
+example/db.sqlite3

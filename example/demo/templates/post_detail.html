@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }} | Example Corp{% endblock %}
+{% block content %}
+  <article>
+    <h1>{{ post.title }}</h1>
+    <p>{{ post.summary }}</p>
+    <pre class="markdown">{{ post.body }}</pre>
+  </article>
+{% endblock %}
