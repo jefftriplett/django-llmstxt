@@ -38,6 +38,36 @@ A request to a canonical URL whose `Accept` header allows `text/markdown`
 sent with `Vary: Accept` so shared caches keep the two representations
 separate. Browsers' `Accept: text/html,...` is unaffected.
 
+## Detecting markdown requests: `request.markdown`
+
+The middleware attaches a `request.markdown` object (a `MarkdownDetails`) to
+every request, in the spirit of [django-htmx][htmx]'s `request.htmx`. It is
+**truthy** when the request opted into a markdown representation, so views and
+later middleware can branch on it:
+
+```python
+def home(request):
+    if request.markdown:
+        # this request will be served markdown — skip the expensive
+        # HTML-only widget that would just be stripped anyway
+        ...
+```
+
+Two booleans record *how* the request opted in:
+
+| Attribute            | True when                                            |
+| -------------------- | ---------------------------------------------------- |
+| `request.markdown.via_suffix` | the URL ended in `.md` (a twin)             |
+| `request.markdown.via_accept` | negotiated via `Accept: text/markdown`      |
+
+You don't need this to serve markdown — conversion happens transparently in
+`process_response` whether or not your view looks at `request.markdown`. It's
+for views that want to *proactively* adapt: render a lighter template, set
+[`response.llms_md`](#per-page-override-llms_md) dynamically, or log markdown
+hits.
+
+[htmx]: https://django-htmx.readthedocs.io/en/latest/middleware.html
+
 ## Conversion rules
 
 The response is converted only when **all** hold:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
-from typing import Any
+from typing import Any, cast
 
 from asgiref.sync import iscoroutinefunction, markcoroutinefunction
 from django.http import HttpRequest, HttpResponse
@@ -13,6 +13,39 @@ from django_llmstxt.conf import app_settings
 from django_llmstxt.sections import path_allowed
 from django_llmstxt.utils import accepts_markdown
 from django_llmstxt.views import MARKDOWN_CONTENT_TYPE
+
+
+class MarkdownDetails:
+    """
+    Attached to every request as ``request.markdown`` by
+    :class:`LlmsMarkdownMiddleware`.
+
+    Truthy when the request opted into a markdown representation, via either
+    a ``.md`` URL suffix or ``Accept: text/markdown`` negotiation::
+
+        if request.markdown:
+            # this request will be served markdown
+            ...
+
+        if request.markdown.via_accept:
+            # opted in through content negotiation, not a .md twin
+            ...
+    """
+
+    __slots__ = ("via_accept", "via_suffix")
+
+    def __init__(self) -> None:
+        self.via_accept = False
+        self.via_suffix = False
+
+    def __bool__(self) -> bool:
+        return self.via_accept or self.via_suffix
+
+    def __repr__(self) -> str:
+        return (
+            f"<MarkdownDetails via_accept={self.via_accept} "
+            f"via_suffix={self.via_suffix}>"
+        )
 
 
 class LlmsMarkdownMiddleware:
@@ -57,20 +90,19 @@ class LlmsMarkdownMiddleware:
         self.process_request(request)
         if self.async_mode:
             return self.__acall__(request)
-        response = self.get_response(request)
+        response = cast(HttpResponseBase, self.get_response(request))
         return self.process_response(request, response)
 
     async def __acall__(self, request: HttpRequest) -> HttpResponseBase:
-        response = await self.get_response(request)  # type: ignore [no-any-return, misc]
+        response = await self.get_response(request)  # type: ignore [misc]
         return self.process_response(request, response)
 
     def process_request(self, request: HttpRequest) -> None:
-        request.llms_wants_markdown = False  # type: ignore [attr-defined]
-        request.llms_via_accept = False  # type: ignore [attr-defined]
+        markdown = MarkdownDetails()
+        request.markdown = markdown  # type: ignore [attr-defined]
 
         if accepts_markdown(request.headers.get("Accept", "")):
-            request.llms_wants_markdown = True  # type: ignore [attr-defined]
-            request.llms_via_accept = True  # type: ignore [attr-defined]
+            markdown.via_accept = True
 
         path = request.path_info
         if request.method not in ("GET", "HEAD") or not path.endswith(".md"):
@@ -111,12 +143,13 @@ class LlmsMarkdownMiddleware:
             prefix = request.path[: -len(request.path_info)]
         request.path_info = path
         request.path = prefix + path
-        request.llms_wants_markdown = True  # type: ignore [attr-defined]
+        request.markdown.via_suffix = True  # type: ignore [attr-defined]
 
     def process_response(
         self, request: HttpRequest, response: HttpResponseBase
     ) -> HttpResponseBase:
-        if not getattr(request, "llms_wants_markdown", False):
+        details: MarkdownDetails | None = getattr(request, "markdown", None)
+        if not details:
             return response
         if response.status_code != 200:
             return response
@@ -130,10 +163,11 @@ class LlmsMarkdownMiddleware:
         markdown = self.get_markdown_override(request, response)
         if markdown is None:
             converter = app_settings.CONVERTER
-            markdown = converter(response.text, url=request.build_absolute_uri())
+            html = cast(HttpResponse, response).text
+            markdown = converter(html, url=request.build_absolute_uri())
 
         markdown_response = HttpResponse(markdown, content_type=MARKDOWN_CONTENT_TYPE)
-        if request.llms_via_accept:  # type: ignore [attr-defined]
+        if details.via_accept:
             patch_vary_headers(markdown_response, ["Accept"])
         user = getattr(request, "user", None)
         if user is not None and user.is_authenticated:

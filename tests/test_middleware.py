@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from django.http import HttpResponse
 from django.test import RequestFactory
 
-from django_llmstxt.middleware import LlmsMarkdownMiddleware
+from django_llmstxt.middleware import LlmsMarkdownMiddleware, MarkdownDetails
 
 rf = RequestFactory()
 
@@ -110,11 +110,48 @@ class TestAcceptNegotiation:
         assert response.headers["Content-Type"].startswith("text/html")
 
 
+class TestRequestMarkdown:
+    def _capture(self, path, **headers):
+        seen = {}
+
+        def get_response(request):
+            seen["details"] = request.markdown
+            return HttpResponse("<html><body><h1>Hi</h1></body></html>")
+
+        middleware = LlmsMarkdownMiddleware(get_response)
+        middleware(rf.get(path, **headers))
+        return seen["details"]
+
+    def test_attached_and_falsy_by_default(self):
+        details = self._capture("/about")
+        assert isinstance(details, MarkdownDetails)
+        assert not details
+        assert details.via_accept is False
+        assert details.via_suffix is False
+
+    def test_truthy_via_accept(self):
+        details = self._capture("/about", HTTP_ACCEPT="text/markdown")
+        assert details
+        assert details.via_accept is True
+        assert details.via_suffix is False
+
+    def test_truthy_via_suffix(self):
+        details = self._capture("/about.md")
+        assert details
+        assert details.via_suffix is True
+        assert details.via_accept is False
+
+    def test_repr(self):
+        details = MarkdownDetails()
+        details.via_accept = True
+        assert repr(details) == ("<MarkdownDetails via_accept=True via_suffix=False>")
+
+
 class TestCacheSafety:
     def test_authenticated_user_gets_private_no_store(self):
         request = rf.get("/hi.md")
-        request.llms_wants_markdown = True
-        request.llms_via_accept = False
+        request.markdown = MarkdownDetails()
+        request.markdown.via_suffix = True
         request.user = SimpleNamespace(is_authenticated=True)
         request.path_info = "/hi"
 
@@ -126,8 +163,8 @@ class TestCacheSafety:
 
     def test_anonymous_user_gets_no_cache_headers(self):
         request = rf.get("/hi.md")
-        request.llms_wants_markdown = True
-        request.llms_via_accept = False
+        request.markdown = MarkdownDetails()
+        request.markdown.via_suffix = True
         request.user = SimpleNamespace(is_authenticated=False)
         request.path_info = "/hi"
 
@@ -138,7 +175,8 @@ class TestCacheSafety:
 
     def test_non_html_response_untouched(self):
         request = rf.get("/feed.xml")
-        request.llms_wants_markdown = True
+        request.markdown = MarkdownDetails()
+        request.markdown.via_suffix = True
         request.path_info = "/feed.xml"
 
         response = make_middleware().process_response(

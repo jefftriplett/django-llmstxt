@@ -42,7 +42,8 @@ class FlatPagesSection(LlmsSection):
         if not self.include_content:
             return None
         converter = app_settings.CONVERTER
-        return converter(item.content, url=item.get_absolute_url())
+        markdown: str = converter(item.content, url=item.get_absolute_url())
+        return markdown
 
 
 class FlatPagesIndexSection(FlatPagesSection):
