@@ -9,8 +9,9 @@ Inspired by [next-with-text](https://github.com/CyrusNuevoDia/next-with-text)
 (Next.js) and shaped after [django-htmx](https://github.com/adamchainz/django-htmx)'s
 packaging and `django.contrib.sitemaps` / `django.contrib.syndication`'s APIs.
 
-**Docs:** [documentation](docs/index.md) · [cookbook](docs/cookbook.md) ·
-[example project](example/)
+**Docs:** [documentation](https://django-llmstxt.readthedocs.io/en/latest/) ·
+[cookbook](https://django-llmstxt.readthedocs.io/en/latest/cookbook/) ·
+[example project](https://github.com/jefftriplett/django-llmstxt/tree/main/example)
 
 ```bash
 pip install django-llmstxt

@@ -43,6 +43,7 @@ dependencies = [
   "markdownify>=0.11.6",
 ]
 urls.Documentation = "https://django-llmstxt.readthedocs.io/en/latest/"
+urls.Issues = "https://github.com/jefftriplett/django-llmstxt/issues"
 urls.Repository = "https://github.com/jefftriplett/django-llmstxt"
 
 [dependency-groups]
