@@ -85,4 +85,9 @@ jobs:
           python-version: "3.13"
 
       - name: Build docs
-        run: uv run --group docs zensical build --strict
+        run: uv run --group docs zensical build --clean --strict
+
+      # Read the Docs runs this same step, so a break in the converter or the
+      # index format fails here first.
+      - name: Generate llms.txt
+        run: uv run --group docs python scripts/gen_llms.py site

@@ -1,6 +1,6 @@
 [project]
 site_name = "django-llmstxt"
-site_url = "https://jefftriplett.github.io/django-llmstxt/"
+site_url = "https://django-llmstxt.readthedocs.io/en/latest/"
 site_description = "llms.txt, llms-full.txt, and markdown content negotiation for Django."
 site_author = "Jeff Triplett"
 copyright = "Copyright &copy; Jeff Triplett"
