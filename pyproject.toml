@@ -100,6 +100,24 @@ warn_unreachable = true
 strict = true
 overrides = [ { module = "tests.*", allow_untyped_defs = true } ]
 
+[tool.bumpver]
+current_version = "0.1.0"
+# SemVer, MAJOR.MINOR.PATCH
+version_pattern = "MAJOR.MINOR.PATCH"
+commit_message = ":bookmark: bump version {old_version} -> {new_version}"
+commit = true
+push = false # the release recipe pushes the tag once uv.lock is amended in
+tag = true
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = [
+  'current_version = "{version}"',
+  '^version = "{version}"',
+]
+"src/django_llmstxt/__init__.py" = [
+  '__version__ = "{version}"',
+]
+
 [tool.pytest.ini_options]
 django_find_project = false
 DJANGO_SETTINGS_MODULE = "tests.settings"
