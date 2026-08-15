@@ -4,6 +4,8 @@ site_url = "https://django-llmstxt.readthedocs.io/en/latest/"
 site_description = "llms.txt, llms-full.txt, and markdown content negotiation for Django."
 site_author = "Jeff Triplett"
 copyright = "Copyright &copy; Jeff Triplett"
+repo_url = "https://github.com/jefftriplett/django-llmstxt"
+repo_name = "jefftriplett/django-llmstxt"
 docs_dir = "docs"
 site_dir = "site"
 nav = [
@@ -26,3 +28,11 @@ features = [
   "navigation.tracking",
   "toc.follow",
 ]
+
+[[project.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/jefftriplett/django-llmstxt"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/python"
+link = "https://pypi.org/project/django-llmstxt/"
