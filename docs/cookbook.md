@@ -370,3 +370,24 @@ def test_accept_negotiation_sets_vary(client):
     response = client.get("/pricing/", headers={"Accept": "text/markdown"})
     assert "Accept" in response.headers["Vary"]
 ```
+
+## 13. Validate your llms.txt in CI
+
+`validate_llmstxt` checks a rendered **index** against the spec's format —
+one H1 title, and every file-list bullet a real markdown link. It returns a
+list of problems (empty means it's well-formed), so it drops straight into a
+test that fails the build if the file drifts out of shape:
+
+```python
+from django_llmstxt import validate_llmstxt
+
+
+def test_llms_txt_is_well_formed(client):
+    problems = validate_llmstxt(client.get("/llms.txt").text)
+    assert not problems, problems
+```
+
+It validates the `llms.txt` index, not `llms-full.txt` — the full file
+embeds page bodies whose own headings and lists are not index entries.
+Fenced code blocks in the [content section](views.md#content-sections-site_details)
+are ignored, so a code sample there won't trip the check.

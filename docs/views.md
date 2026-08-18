@@ -32,9 +32,34 @@ Renders the spec-compliant index:
 
 - `#` header from `site_title` (view attribute, then `LLMSTXT["SITE_TITLE"]`)
 - `>` blockquote from `site_description` (same fallback chain)
+- Free **content section** from `site_details` (same fallback chain) — see below
 - Untitled sections first is *your* job — declare them first in `sections`
 - Entry descriptions render after a colon; entries without one render as a
   bare link
+
+### Content sections (`site_details`)
+
+The spec allows *"zero or more markdown sections … containing more detailed
+information"* between the blockquote and the first `## H2` list. Set
+`site_details` (view attribute) or `LLMSTXT["SITE_DETAILS"]` to any markdown
+— a paragraph, a usage note, a list — and it renders in that slot:
+
+```markdown
+# Acme
+
+> Payments infrastructure for platforms.
+
+Start with the quickstart, then the reference. Every link below has a
+`.md` twin for clean ingestion.
+
+## Docs
+
+- [Getting started](https://example.com/docs/start/): Install and run.
+```
+
+The string is emitted verbatim (stripped of surrounding blank lines), so
+multi-paragraph or list content works as written. Omitted by default — the
+header goes straight from the blockquote to the first section.
 
 ## `LlmsFullTxtView`
 
@@ -60,6 +85,27 @@ body — the metadata-only listing for gated pages.
 | `sections` | `{}` | `dict[str, LlmsSection \| type[LlmsSection]]`. Classes are instantiated per request; instances are used as-is. Keys are registry labels only — headings come from `Section.title`. |
 | `site_title` | `None` | Overrides `LLMSTXT["SITE_TITLE"]` for this view. |
 | `site_description` | `None` | Overrides `LLMSTXT["SITE_DESCRIPTION"]` for this view. |
+| `site_details` | `None` | Overrides `LLMSTXT["SITE_DETAILS"]` for this view — the content section after the blockquote. |
+
+## Conditional GET (ETag)
+
+Both index views send a strong `ETag` computed from the rendered body, and
+honor `If-None-Match` themselves — a request whose ETag still matches gets a
+`304 Not Modified` with no body. An agent that polls `llms-full.txt` (which
+can be large) re-downloads it only when it actually changes:
+
+```http
+GET /llms-full.txt HTTP/1.1
+If-None-Match: "e3b0c442..."
+
+HTTP/1.1 304 Not Modified
+ETag: "e3b0c442..."
+```
+
+The ETag is a hash of the exact bytes, so it changes whenever the title,
+description, content section, or any section entry changes. This works
+without `ConditionalGetMiddleware` installed; if you do run it, the two
+simply agree.
 
 ## Absolute URLs
 

@@ -31,10 +31,11 @@ resolves:
 | `/docs/intro.md` | `/docs/intro`, `/docs/intro/`, `/docs/intro.html` |
 | `/page.html.md` | `/page.html`, `/page.html/` |
 | `/docs/index.md` | `/docs/index`, `/docs/index/`, `/docs/` |
+| `/docs/index.html.md` | `/docs/index.html`, `/docs/index.html/`, `/docs/` |
 
 The appended form (`/page.html.md`) and the replaced extension (`/page.md`)
-are both spec-blessed. A path without a file name is named by `index.md`,
-which resolves to the directory itself.
+are both spec-blessed. A path without a file name is named by `index.md` or
+`index.html.md`, either of which resolves to the directory itself.
 
 If neither stripped path resolves in the URLconf, the request is still
 rewritten optimistically so a fallback middleware (e.g.

@@ -30,6 +30,7 @@ class DocsSection(LlmsSection):
 | Attribute | Default | Meaning |
 |---|---|---|
 | `title` | `None` | Section heading, rendered as `## {title}`. `None` = ungrouped entries rendered before any heading (use for root-level pages). |
+| `optional` | `False` | Mark this as the spec's "Optional" group — links an agent may skip for a shorter context. Renders under `## Optional` (or `title`, if you set one). See below. |
 | `description` | `None` | Reserved for future use; not currently rendered. |
 
 ## Methods
@@ -76,6 +77,29 @@ open the file with root-level pages, matching the llms.txt convention:
 sections = {"root": RootSection, "docs": DocsSection, "blog": BlogSection}
 ```
 
+## The "Optional" section
+
+The spec reserves an `## Optional` heading by convention: it holds *"links
+an agent can skip when a shorter context is needed."* Set `optional = True`
+instead of hardcoding the heading string:
+
+```python
+class FurtherReading(LlmsSection):
+    optional = True  # renders "## Optional"
+
+    def items(self):
+        return [{"title": "Changelog", "url": "/changelog/"}]
+```
+
+Declare it **last** so the skippable links sit at the end of the file:
+
+```python
+sections = {"docs": DocsSection, "optional": FurtherReading}
+```
+
+Give it a different visible label — while keeping the skippable intent — by
+also setting `title`.
+
 ## Glob filtering
 
 `get_entries()` drops any entry whose URL fails the
@@ -109,3 +133,23 @@ urlpatterns = [
 `django.contrib.flatpages` out of the box, converting each page's HTML
 content with the configured converter. See the
 [cookbook](cookbook.md#1-flat-pages-zero-code).
+
+## Built-in: from an existing sitemap
+
+Already have a `django.contrib.sitemaps.Sitemap`? Reuse it —
+`django_llmstxt.contrib.sitemaps.SitemapSection` turns any Sitemap class or
+instance into a section, so your index and your sitemap never list different
+URLs:
+
+```python
+from django_llmstxt.contrib.sitemaps import SitemapSection
+from myblog.sitemaps import BlogSitemap
+
+SECTIONS = {"blog": SitemapSection(BlogSitemap, title="Blog")}
+```
+
+Each item is located exactly where the sitemap locates it (its `location`
+attribute/method, or the item's `get_absolute_url()`). Sitemaps have no
+titles, so entry titles come from the item's `__str__` — override
+`item_title` for something nicer. Entries are metadata-only by default;
+subclass and override `item_content` to publish bodies in `llms-full.txt`.

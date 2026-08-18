@@ -28,6 +28,10 @@ pip install django-llmstxt
   get markdown; browsers are unaffected
 - **`Link:` headers** — `rel="alternate"` and `rel="describedby"`, so an agent
   finds the markdown twin and the covering `llms.txt` without guessing
+- **`request.markdown`** — a truthy request flag (like `request.htmx`) for views
+  that want to adapt when markdown was asked for
+- **Conditional GET** — the index views send an `ETag` and answer
+  `If-None-Match` with `304`, so agents skip re-downloading an unchanged file
 
 ## The index views
 
@@ -73,6 +77,14 @@ Skip the boilerplate entirely:
 from django_llmstxt.contrib.flatpages import FlatPagesSection
 
 sections = {"pages": FlatPagesSection}  # every flat page, content converted
+```
+
+Already have a sitemap? Reuse it so the two never drift:
+
+```python
+from django_llmstxt.contrib.sitemaps import SitemapSection
+
+sections = {"blog": SitemapSection(BlogSitemap, title="Blog")}
 ```
 
 Or static dicts:

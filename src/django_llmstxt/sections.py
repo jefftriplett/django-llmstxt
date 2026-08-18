@@ -29,10 +29,21 @@ class LlmsSection:
 
     ``title = None`` means the entries render ungrouped, before any
     ``## Heading`` sections — typically used for root-level pages.
+
+    ``optional = True`` marks the section as the spec's "Optional" group:
+    links an agent may skip when a shorter context is needed. It renders
+    under a ``## Optional`` heading (override the label with ``title``).
     """
 
     title: str | None = None
     description: str | None = None
+    optional: bool = False
+
+    def get_title(self) -> str | None:
+        """The rendered ``## Heading``, or None to render ungrouped."""
+        if self.optional:
+            return self.title or "Optional"
+        return self.title
 
     def items(self) -> Iterable[Any]:
         return []

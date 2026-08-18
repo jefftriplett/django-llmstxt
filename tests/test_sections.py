@@ -33,6 +33,27 @@ class ModelSection(LlmsSection):
         return [ModelLike("Hello", "/blog/hello/")]
 
 
+class TestGetTitle:
+    def test_plain_section_uses_title(self):
+        assert ModelSection().get_title() == "Blog"
+
+    def test_untitled_section_is_none(self):
+        assert DictSection().get_title() is None
+
+    def test_optional_defaults_to_optional_heading(self):
+        class Extras(LlmsSection):
+            optional = True
+
+        assert Extras().get_title() == "Optional"
+
+    def test_optional_respects_explicit_title(self):
+        class Extras(LlmsSection):
+            optional = True
+            title = "Further reading"
+
+        assert Extras().get_title() == "Further reading"
+
+
 class TestGetEntries:
     def test_dict_items(self):
         entries = DictSection().get_entries()

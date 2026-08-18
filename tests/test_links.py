@@ -42,6 +42,23 @@ class TestMarkdownUrlForms:
     def test_candidates_of_a_file_name_skip_extension_replacement(self):
         assert markdown_candidates("/page.html.md") == ["/page.html", "/page.html/"]
 
+    def test_index_html_md_names_the_directory(self):
+        # The appended-suffix form of a directory index resolves to the
+        # directory itself, just like /docs/index.md does.
+        assert markdown_candidates("/docs/index.html.md") == [
+            "/docs/index.html",
+            "/docs/index.html/",
+            "/docs/",
+        ]
+
+    def test_root_index_md_names_the_site_root(self):
+        assert markdown_candidates("/index.md") == [
+            "/index",
+            "/index/",
+            "/",
+            "/index.html",
+        ]
+
     def test_markdown_url_of_a_directory_uses_index(self):
         assert markdown_url("/docs/") == "/docs/index.md"
 

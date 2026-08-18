@@ -10,6 +10,10 @@ DEFAULTS: dict[str, Any] = {
     # Views may override per-view via attributes.
     "SITE_TITLE": "",
     "SITE_DESCRIPTION": "",
+    # Free markdown placed between the blockquote and the first ## section,
+    # per the spec's "content sections" — an intro paragraph, a usage note,
+    # a list. Views may override per-view via the ``site_details`` attribute.
+    "SITE_DETAILS": "",
     # Route-path globs (not file paths). Exclude wins over include, and wins
     # over every other surface: no .md conversion, no index entry.
     "INCLUDE": ["*"],

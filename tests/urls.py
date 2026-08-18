@@ -36,6 +36,13 @@ class DocsSection(LlmsSection):
         ]
 
 
+class OptionalSection(LlmsSection):
+    optional = True
+
+    def items(self):
+        return [{"title": "Changelog", "url": "/changelog/"}]
+
+
 def about(request):
     return HttpResponse(
         "<html><head><title>About</title></head>"
@@ -107,7 +114,11 @@ urlpatterns = [
     path(
         "llms.txt",
         LlmsTxtView.as_view(
-            sections={"root": RootSection, "docs": DocsSection},
+            sections={
+                "root": RootSection,
+                "docs": DocsSection,
+                "optional": OptionalSection,
+            },
         ),
         name="llms-txt",
     ),
@@ -124,6 +135,7 @@ urlpatterns = [
             sections={"root": RootSection},
             site_title="Acme Docs",
             site_description="Everything about the Acme API.",
+            site_details="Start with the quickstart, then the reference.",
         ),
         name="llms-txt-branded",
     ),

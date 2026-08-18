@@ -7,6 +7,7 @@ Every key is optional; the defaults shown below.
 LLMSTXT = {
     "SITE_TITLE": "",
     "SITE_DESCRIPTION": "",
+    "SITE_DETAILS": "",
     "INCLUDE": ["*"],
     "EXCLUDE": [],
     "LINK_HEADERS": True,
@@ -27,6 +28,17 @@ LLMSTXT = {"SITE_TITLE": "Acme"}
 
 Default `>` blockquote under the header. A view's `site_description`
 attribute wins. Empty = no blockquote.
+
+## `SITE_DETAILS`
+
+Free markdown for the spec's **content section** — placed between the
+blockquote and the first `## H2` list in both index views. A view's
+`site_details` attribute wins. Empty = no content section. See
+[Content sections](views.md#content-sections-site_details).
+
+```python
+LLMSTXT = {"SITE_DETAILS": "Start with the quickstart, then the reference."}
+```
 
 ## `INCLUDE` / `EXCLUDE`
 

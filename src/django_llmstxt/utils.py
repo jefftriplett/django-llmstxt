@@ -56,11 +56,12 @@ def markdown_candidates(path: str) -> list[str]:
     """
     canonical = path.removesuffix(".md")
     candidates = [canonical, f"{canonical}/"]
-    # /docs/index.md and /index.md name the directory itself.
-    if canonical.endswith("/index"):
-        candidates.append(canonical.removesuffix("index"))
+    last = canonical.rsplit("/", 1)[-1]
+    # /docs/index.md and /docs/index.html.md both name the directory itself.
+    if last in ("index", "index.html"):
+        candidates.append(canonical[: -len(last)])
     # Extension replacement: /page.md may stand for /page.html.
-    if "." not in canonical.rsplit("/", 1)[-1]:
+    if "." not in last:
         candidates.append(f"{canonical}.html")
     return candidates
 
