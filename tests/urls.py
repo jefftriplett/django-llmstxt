@@ -66,6 +66,14 @@ class GuideView(View):
         return HttpResponse("<html><body><h1>Guide</h1></body></html>")
 
 
+def page_html(request):
+    return HttpResponse("<html><body><h1>Page</h1></body></html>")
+
+
+def tour(request):
+    return HttpResponse("<html><body><h1>Tour</h1></body></html>")
+
+
 def profile(request):
     return HttpResponse("<html><body><h1>Profile</h1></body></html>")
 
@@ -92,6 +100,8 @@ urlpatterns = [
     path("raw.md", raw_markdown, name="raw-markdown"),
     path("trailing/", trailing, name="trailing"),
     path("guide", GuideView.as_view(), name="guide"),
+    path("page.html", page_html, name="page-html"),
+    path("branded/tour", tour, name="tour"),
     path("profile", profile, name="profile"),
     path("report", report, name="report"),
     path(

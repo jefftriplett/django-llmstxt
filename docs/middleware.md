@@ -19,10 +19,22 @@ does no work at all unless a request asks for markdown.
 ## `/<route>.md` twins
 
 A GET/HEAD request ending in `.md` is rewritten to the canonical route
-before URL resolution: `/pricing.md` → `/pricing`, `/docs/intro.md` →
-`/docs/intro` (and `/docs/intro/` is tried too, for `APPEND_SLASH`-style
-URLconfs). The view renders normally; the HTML response is converted to
-markdown on the way out.
+before URL resolution. The view renders normally; the HTML response is
+converted to markdown on the way out.
+
+The v2 spec allows more than one way to name the markdown twin, so the
+middleware tries these candidates in order, and takes the first that
+resolves:
+
+| Request | Candidates |
+| --- | --- |
+| `/docs/intro.md` | `/docs/intro`, `/docs/intro/`, `/docs/intro.html` |
+| `/page.html.md` | `/page.html`, `/page.html/` |
+| `/docs/index.md` | `/docs/index`, `/docs/index/`, `/docs/` |
+
+The appended form (`/page.html.md`) and the replaced extension (`/page.md`)
+are both spec-blessed. A path without a file name is named by `index.md`,
+which resolves to the directory itself.
 
 If neither stripped path resolves in the URLconf, the request is still
 rewritten optimistically so a fallback middleware (e.g.
@@ -34,9 +46,50 @@ unconverted. `.md` files you serve deliberately — routes that resolve as-is
 ## `Accept: text/markdown`
 
 A request to a canonical URL whose `Accept` header allows `text/markdown`
-(or `text/x-markdown`) with `q > 0` gets the same conversion. Responses are
-sent with `Vary: Accept` so shared caches keep the two representations
-separate. Browsers' `Accept: text/html,...` is unaffected.
+(or `text/x-markdown`) with `q > 0` gets the same conversion. Browsers'
+`Accept: text/html,...` is unaffected.
+
+Both representations of the canonical URL are sent with `Vary: Accept`, so a
+shared cache never hands the HTML to an agent that asked for markdown. A
+`.md` twin is a separate URL, so it carries no `Vary` header.
+
+## Discovery: link relations
+
+The v2 spec asks a page to say where its markdown twin and its covering
+`llms.txt` file live. The middleware adds both as a `Link:` response header,
+with no configuration:
+
+```http
+GET /docs/intro HTTP/1.1
+
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=utf-8
+Link: </docs/intro.md>; rel="alternate"; type="text/markdown",
+      </docs/llms.txt>; rel="describedby"
+```
+
+A markdown response is its own alternate, so it carries the `describedby`
+relation only.
+
+The `describedby` target is resolved against your URLconf. An `llms.txt`
+file covers the pages under its own path, and the most specific file wins:
+a request for `/docs/intro` points at `/docs/llms.txt` when that route
+exists, and falls back to `/llms.txt`. No setting lists the location.
+
+Set `LINK_HEADERS` to `False` to turn the header off.
+
+Some clients read markup only. For those, render the same two relations as
+HTML `<link>` elements in your `<head>`:
+
+```html
+{% load llmstxt %}
+<head>
+  {% llms_links %}
+</head>
+```
+
+The tag needs `django.template.context_processors.request` in your template
+`OPTIONS`. It renders nothing without a request.
 
 ## Detecting markdown requests: `request.markdown`
 

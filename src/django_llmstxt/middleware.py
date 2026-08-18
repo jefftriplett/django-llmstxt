@@ -11,7 +11,13 @@ from django.utils.cache import patch_cache_control, patch_vary_headers
 
 from django_llmstxt.conf import app_settings
 from django_llmstxt.sections import path_allowed
-from django_llmstxt.utils import accepts_markdown
+from django_llmstxt.utils import (
+    accepts_markdown,
+    build_link_header,
+    llms_txt_url,
+    markdown_candidates,
+    markdown_url,
+)
 from django_llmstxt.views import MARKDOWN_CONTENT_TYPE
 
 
@@ -116,8 +122,7 @@ class LlmsMarkdownMiddleware:
         except Resolver404:
             pass
 
-        canonical = path.removesuffix(".md")
-        for candidate in (canonical, f"{canonical}/"):
+        for candidate in markdown_candidates(path):
             try:
                 resolve(candidate)
             except Resolver404:
@@ -125,7 +130,9 @@ class LlmsMarkdownMiddleware:
             self.rewrite_path(request, candidate)
             return
 
-        # Neither resolves: a fallback middleware (e.g. flatpages, whose
+        canonical = path.removesuffix(".md")
+
+        # No candidate resolves: a fallback middleware (e.g. flatpages, whose
         # URLs always end in "/") may still serve the canonical path, so
         # rewrite and mark regardless. A plain 404 response is passed
         # through by process_response.
@@ -149,7 +156,7 @@ class LlmsMarkdownMiddleware:
         self, request: HttpRequest, response: HttpResponseBase
     ) -> HttpResponseBase:
         details: MarkdownDetails | None = getattr(request, "markdown", None)
-        if not details:
+        if details is None:
             return response
         if response.status_code != 200:
             return response
@@ -160,6 +167,16 @@ class LlmsMarkdownMiddleware:
         if not path_allowed(request.path_info):
             return response
 
+        if not details:
+            # An ordinary HTML response, but this URL also answers to
+            # Accept: text/markdown, so a shared cache must keep the two
+            # representations apart.
+            patch_vary_headers(response, ["Accept"])
+            # Advertise the markdown twin and the covering llms.txt file,
+            # as the v2 spec recommends.
+            self.add_link_header(request, response, alternate=True)
+            return response
+
         markdown = self.get_markdown_override(request, response)
         if markdown is None:
             converter = app_settings.CONVERTER
@@ -167,12 +184,39 @@ class LlmsMarkdownMiddleware:
             markdown = converter(html, url=request.build_absolute_uri())
 
         markdown_response = HttpResponse(markdown, content_type=MARKDOWN_CONTENT_TYPE)
+        self.add_link_header(request, markdown_response, alternate=False)
         if details.via_accept:
             patch_vary_headers(markdown_response, ["Accept"])
         user = getattr(request, "user", None)
         if user is not None and user.is_authenticated:
             patch_cache_control(markdown_response, private=True, no_store=True)
         return markdown_response
+
+    def add_link_header(
+        self, request: HttpRequest, response: HttpResponseBase, *, alternate: bool
+    ) -> None:
+        """
+        Add the llms.txt v2 discovery relations to ``response``.
+
+        ``rel="alternate"`` points at the markdown twin of an HTML page, and
+        ``rel="describedby"`` at the llms.txt file that covers the path. A
+        markdown response is its own alternate, so it gets the second only.
+        """
+        if not app_settings.LINK_HEADERS:
+            return
+        # Routes resolve against path_info, but the links a client follows
+        # need any script-name prefix back in front.
+        path = request.path_info
+        prefix = request.path.removesuffix(path) if request.path.endswith(path) else ""
+        covering = llms_txt_url(path)
+        value = build_link_header(
+            alternate=f"{prefix}{markdown_url(path)}" if alternate else "",
+            describedby=f"{prefix}{covering}" if covering else "",
+        )
+        if not value:
+            return
+        existing = response.headers.get("Link")
+        response.headers["Link"] = f"{existing}, {value}" if existing else value
 
     def get_markdown_override(
         self, request: HttpRequest, response: HttpResponseBase

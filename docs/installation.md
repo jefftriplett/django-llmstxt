@@ -20,7 +20,8 @@ Two independent pieces — use either or both.
 
 ### 1. The indexes (`/llms.txt`, `/llms-full.txt`)
 
-Add `django_llmstxt` to `INSTALLED_APPS` (optional but recommended), declare
+Add `django_llmstxt` to `INSTALLED_APPS` (needed for the `{% llms_links %}`
+template tag, recommended otherwise), declare
 one or more [sections](sections.md), and wire the [views](views.md):
 
 ```python

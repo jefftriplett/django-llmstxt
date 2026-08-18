@@ -1,6 +1,6 @@
 # django-llmstxt documentation
 
-[llms.txt](https://llmstxt.org) for Django: a spec-compliant index of your
+[llms.txt](https://llmstxt.org) for Django (v2 of the spec): an index of your
 pages, a full-text companion file, and markdown representations of ordinary
 HTML pages.
 
@@ -10,8 +10,8 @@ HTML pages.
 - [Sections](sections.md) — declaring what appears in your indexes (the
   sitemap/feed-style API)
 - [Views](views.md) — `LlmsTxtView` and `LlmsFullTxtView`
-- [Middleware](middleware.md) — `/<route>.md` twins and `Accept: text/markdown`
-  negotiation
+- [Middleware](middleware.md) — `/<route>.md` twins, `Accept: text/markdown`
+  negotiation, and the v2 discovery relations
 - [Settings](settings.md) — the full `LLMSTXT` dict reference
 - [Cookbook](cookbook.md) — recipes: flat pages, blog models, gated pages,
   custom converters, and more

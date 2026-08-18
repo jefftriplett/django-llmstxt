@@ -14,6 +14,9 @@ DEFAULTS: dict[str, Any] = {
     # over every other surface: no .md conversion, no index entry.
     "INCLUDE": ["*"],
     "EXCLUDE": [],
+    # Emit the llms.txt v2 discovery relations as a Link: response header
+    # (rel="alternate" for the .md twin, rel="describedby" for llms.txt).
+    "LINK_HEADERS": True,
     # Callable (or dotted path to one) turning an HTML document into markdown:
     #   converter(html: str, *, url: str = "") -> str
     "CONVERTER": "django_llmstxt.convert.html_to_markdown",

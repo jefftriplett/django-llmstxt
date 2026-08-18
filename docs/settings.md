@@ -9,6 +9,7 @@ LLMSTXT = {
     "SITE_DESCRIPTION": "",
     "INCLUDE": ["*"],
     "EXCLUDE": [],
+    "LINK_HEADERS": True,
     "CONVERTER": "django_llmstxt.convert.html_to_markdown",
 }
 ```
@@ -45,6 +46,21 @@ LLMSTXT = {
     "EXCLUDE": ["/admin/*", "/accounts/*", "/internal/dashboard"],
 }
 ```
+
+## `LINK_HEADERS`
+
+Whether the middleware adds the llms.txt v2 discovery relations to a
+response as a `Link:` header — `rel="alternate"` for the markdown twin, and
+`rel="describedby"` for the covering `llms.txt` file. See
+[Discovery](middleware.md#discovery-link-relations).
+
+Set it to `False` when your CDN or web server already adds the header:
+
+```python
+LLMSTXT = {"LINK_HEADERS": False}
+```
+
+The `{% llms_links %}` template tag is unaffected by this setting.
 
 ## `CONVERTER`
 

@@ -1,6 +1,6 @@
 # django-llmstxt
 
-[llms.txt](https://llmstxt.org) for Django: a spec-compliant index of your
+[llms.txt](https://llmstxt.org) for Django (v2 of the spec): an index of your
 pages, a full-text companion file, and markdown representations of ordinary
 HTML pages — declared the way you already declare sitemaps and syndication
 feeds.
@@ -26,6 +26,8 @@ pip install django-llmstxt
 - **`/<route>.md`** — a markdown twin of any HTML page (`/about` → `/about.md`)
 - **`Accept: text/markdown`** — agents that ask a canonical URL for markdown
   get markdown; browsers are unaffected
+- **`Link:` headers** — `rel="alternate"` and `rel="describedby"`, so an agent
+  finds the markdown twin and the covering `llms.txt` without guessing
 
 ## The index views
 
@@ -112,6 +114,23 @@ That's it. `/about.md` now serves a markdown conversion of `/about`, and
 `Vary: Accept` set). Scripts, styles, and `noscript` are stripped before
 conversion.
 
+**Discovery (v2).** Every HTML response carries the two link relations the
+v2 spec recommends, so an agent never has to guess a URL:
+
+```http
+Link: </about.md>; rel="alternate"; type="text/markdown",
+      </llms.txt>; rel="describedby"
+```
+
+The `describedby` target is the most specific `llms.txt` in your URLconf
+that covers the path, so `/docs/intro` points at `/docs/llms.txt` when that
+route exists. For clients that read markup only, `{% llms_links %}` renders
+the same pair as `<link>` elements.
+
+The v2 markdown URL forms all resolve: `/page.html.md` (appended),
+`/page.md` (replaced extension), and `/docs/index.md` (a path without a file
+name).
+
 **Per-page override.** Pages whose HTML converts poorly can ship hand-written
 markdown. On a function view:
 
@@ -142,6 +161,7 @@ LLMSTXT = {
     "SITE_DESCRIPTION": "Payments infra.",  # `> ...` blockquote under the header
     "INCLUDE": ["*"],  # route-path globs
     "EXCLUDE": ["/admin/*"],  # wins over INCLUDE and every surface
+    "LINK_HEADERS": True,  # emit the v2 rel="alternate" / rel="describedby" links
     "CONVERTER": "django_llmstxt.convert.html_to_markdown",  # or your callable
 }
 ```
